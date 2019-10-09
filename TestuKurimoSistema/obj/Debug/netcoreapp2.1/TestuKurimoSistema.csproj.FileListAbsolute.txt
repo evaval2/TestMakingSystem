@@ -1,0 +1,14 @@
+C:\Users\Evaldas\source\repos\TestuKurimoSistema\TestuKurimoSistema\bin\Debug\netcoreapp2.1\TestuKurimoSistema.deps.json
+C:\Users\Evaldas\source\repos\TestuKurimoSistema\TestuKurimoSistema\bin\Debug\netcoreapp2.1\TestuKurimoSistema.runtimeconfig.json
+C:\Users\Evaldas\source\repos\TestuKurimoSistema\TestuKurimoSistema\bin\Debug\netcoreapp2.1\TestuKurimoSistema.runtimeconfig.dev.json
+C:\Users\Evaldas\source\repos\TestuKurimoSistema\TestuKurimoSistema\bin\Debug\netcoreapp2.1\TestuKurimoSistema.dll
+C:\Users\Evaldas\source\repos\TestuKurimoSistema\TestuKurimoSistema\bin\Debug\netcoreapp2.1\TestuKurimoSistema.pdb
+C:\Users\Evaldas\source\repos\TestuKurimoSistema\TestuKurimoSistema\obj\Debug\netcoreapp2.1\TestuKurimoSistema.csprojAssemblyReference.cache
+C:\Users\Evaldas\source\repos\TestuKurimoSistema\TestuKurimoSistema\obj\Debug\netcoreapp2.1\TestuKurimoSistema.csproj.CoreCompileInputs.cache
+C:\Users\Evaldas\source\repos\TestuKurimoSistema\TestuKurimoSistema\obj\Debug\netcoreapp2.1\TestuKurimoSistema.RazorAssemblyInfo.cache
+C:\Users\Evaldas\source\repos\TestuKurimoSistema\TestuKurimoSistema\obj\Debug\netcoreapp2.1\TestuKurimoSistema.RazorAssemblyInfo.cs
+C:\Users\Evaldas\source\repos\TestuKurimoSistema\TestuKurimoSistema\obj\Debug\netcoreapp2.1\TestuKurimoSistema.AssemblyInfoInputs.cache
+C:\Users\Evaldas\source\repos\TestuKurimoSistema\TestuKurimoSistema\obj\Debug\netcoreapp2.1\TestuKurimoSistema.AssemblyInfo.cs
+C:\Users\Evaldas\source\repos\TestuKurimoSistema\TestuKurimoSistema\obj\Debug\netcoreapp2.1\TestuKurimoSistema.RazorTargetAssemblyInfo.cache
+C:\Users\Evaldas\source\repos\TestuKurimoSistema\TestuKurimoSistema\obj\Debug\netcoreapp2.1\TestuKurimoSistema.dll
+C:\Users\Evaldas\source\repos\TestuKurimoSistema\TestuKurimoSistema\obj\Debug\netcoreapp2.1\TestuKurimoSistema.pdb
