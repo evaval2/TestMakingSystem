@@ -3,6 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Cassandra;
+using System.Net.Security;
+using System.Security.Authentication;
+using System.Security.Cryptography.X509Certificates;
+
 namespace TestuKurimoSistema.DB.Entities
 {
     public class Test
@@ -42,14 +46,31 @@ namespace TestuKurimoSistema.DB.Entities
         public int TestTime {
             get { return time; }
             set { this.time = value; } }
+        private static bool ValidateServerCertificate(
+        object sender,
+        X509Certificate certificate,
+        X509Chain chain,
+        SslPolicyErrors sslPolicyErrors)
+        {
+            if (sslPolicyErrors == SslPolicyErrors.None)
+                return true;
+            Console.WriteLine("Certificate error: {0}", sslPolicyErrors);
+            return false;
+        }
+        private static ISession getSession()
+        {
+            Cluster _cluster = Cluster.Builder()
+                .WithCredentials("cassandra", "cassandra")
+                .WithPort(9042)
+                .AddContactPoint("localhost")
+                .Build();
+            ISession session = _cluster.Connect("testmakingsystem");
+            return session;
+        }
         public async Task<List<Test>> Select(int topic_id)
         {
             var tests = new List<Test>();
-            var _cluster = Cluster.Builder().AddContactPoint("127.0.0.1")
-                                           .WithPort(9042)
-                                           .WithCredentials("cassandra", "casandra")
-                                           .Build();
-            using (var session = _cluster.Connect("testmakingsystem"))
+            using (var session = getSession())
             {
                 var query = new SimpleStatement("SELECT id, name, average, time " +
                                                 "FROM test " +
@@ -62,12 +83,8 @@ namespace TestuKurimoSistema.DB.Entities
         }
         public async Task<Test> Select(int topic_id, int id)
         {
-            var test = new Test();
-            var _cluster = Cluster.Builder().AddContactPoint("127.0.0.1")
-                                           .WithPort(9042)
-                                           .WithCredentials("cassandra", "casandra")
-                                           .Build();
-            using (var session = _cluster.Connect("testmakingsystem"))
+            var test = new Test();            
+            using (var session = getSession())
             {
                 var query = new SimpleStatement("SELECT id, name, average, time " +
                                                 "FROM test " +
@@ -80,11 +97,7 @@ namespace TestuKurimoSistema.DB.Entities
         }
         public async Task<Test> Insert(int topic_id, Test testB)
         {
-            var _cluster = Cluster.Builder().AddContactPoint("127.0.0.1")
-                                           .WithPort(9042)
-                                           .WithCredentials("cassandra", "casandra")
-                                           .Build();
-            using (var session = _cluster.Connect("testmakingsystem"))
+            using (var session = getSession())
             {
                 var query = new SimpleStatement("SELECT count FROM count " +
                                                 "WHERE id = ?", "test");
@@ -104,11 +117,7 @@ namespace TestuKurimoSistema.DB.Entities
         }
         public async Task<Test> Update(int topic_id, int id, Test testB)
         {
-            var _cluster = Cluster.Builder().AddContactPoint("127.0.0.1")
-                                            .WithPort(9042)
-                                            .WithCredentials("cassandra", "casandra")
-                                            .Build();
-            using (var session = _cluster.Connect("testmakingsystem"))
+            using (var session = getSession())
             {
                 var query = new SimpleStatement("SELECT COUNT(*) AS c FROM test " +
                                                 "WHERE topic_id = ? AND id = ?", topic_id, id);
@@ -130,11 +139,7 @@ namespace TestuKurimoSistema.DB.Entities
         }
         public async Task<bool> Remove(int topic_id, int id)
         {
-            var _cluster = Cluster.Builder().AddContactPoint("127.0.0.1")
-                                            .WithPort(9042)
-                                            .WithCredentials("cassandra", "casandra")
-                                            .Build();
-            using (var session = _cluster.Connect("testmakingsystem"))
+            using (var session = getSession())
             {
                 var query = new SimpleStatement("SELECT COUNT(*) AS c FROM test " +
                                                 "WHERE topic_id = ? AND id = ?", topic_id, id);

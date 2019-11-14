@@ -4,6 +4,7 @@
     <DebuggerFlavor>ProjectDebugger</DebuggerFlavor>
   </PropertyGroup>
   <PropertyGroup>
-    <ActiveDebugProfile>TestuKurimoSistema</ActiveDebugProfile>
+    <ActiveDebugProfile>TestuKurimoSistemaLocal</ActiveDebugProfile>
+    <NameOfLastUsedPublishProfile>testukurimosistema - Web Deploy</NameOfLastUsedPublishProfile>
   </PropertyGroup>
 </Project>

@@ -1,0 +1,15 @@
+C:\Users\Evaldas\Source\Repos\TestMakingSystem\TestuKurimoSistema\bin\Release\netcoreapp2.1\TestuKurimoSistema.deps.json
+C:\Users\Evaldas\Source\Repos\TestMakingSystem\TestuKurimoSistema\bin\Release\netcoreapp2.1\TestuKurimoSistema.runtimeconfig.json
+C:\Users\Evaldas\Source\Repos\TestMakingSystem\TestuKurimoSistema\bin\Release\netcoreapp2.1\TestuKurimoSistema.runtimeconfig.dev.json
+C:\Users\Evaldas\Source\Repos\TestMakingSystem\TestuKurimoSistema\bin\Release\netcoreapp2.1\TestuKurimoSistema.dll
+C:\Users\Evaldas\Source\Repos\TestMakingSystem\TestuKurimoSistema\bin\Release\netcoreapp2.1\TestuKurimoSistema.pdb
+C:\Users\Evaldas\Source\Repos\TestMakingSystem\TestuKurimoSistema\obj\Release\netcoreapp2.1\TestuKurimoSistema.csprojAssemblyReference.cache
+C:\Users\Evaldas\Source\Repos\TestMakingSystem\TestuKurimoSistema\obj\Release\netcoreapp2.1\TestuKurimoSistema.csproj.CoreCompileInputs.cache
+C:\Users\Evaldas\Source\Repos\TestMakingSystem\TestuKurimoSistema\obj\Release\netcoreapp2.1\TestuKurimoSistema.RazorAssemblyInfo.cache
+C:\Users\Evaldas\Source\Repos\TestMakingSystem\TestuKurimoSistema\obj\Release\netcoreapp2.1\TestuKurimoSistema.RazorAssemblyInfo.cs
+C:\Users\Evaldas\Source\Repos\TestMakingSystem\TestuKurimoSistema\obj\Release\netcoreapp2.1\TestuKurimoSistema.AssemblyInfoInputs.cache
+C:\Users\Evaldas\Source\Repos\TestMakingSystem\TestuKurimoSistema\obj\Release\netcoreapp2.1\TestuKurimoSistema.AssemblyInfo.cs
+C:\Users\Evaldas\Source\Repos\TestMakingSystem\TestuKurimoSistema\obj\Release\netcoreapp2.1\TestuKurimoSistema.RazorTargetAssemblyInfo.cache
+C:\Users\Evaldas\Source\Repos\TestMakingSystem\TestuKurimoSistema\obj\Release\netcoreapp2.1\TestuKurimoSistema.dll
+C:\Users\Evaldas\Source\Repos\TestMakingSystem\TestuKurimoSistema\obj\Release\netcoreapp2.1\TestuKurimoSistema.pdb
+C:\Users\Evaldas\Source\Repos\TestMakingSystem\TestuKurimoSistema\obj\Release\netcoreapp2.1\UserSecretsAssemblyInfo.cs

@@ -1,0 +1,17 @@
+C:\Users\Evaldas\Source\Repos\TestMakingSystem\TestuKurimoSistema\bin\Release\netcoreapp2.1\win-x86\hostpolicy.dll
+C:\Users\Evaldas\Source\Repos\TestMakingSystem\TestuKurimoSistema\bin\Release\netcoreapp2.1\win-x86\hostfxr.dll
+C:\Users\Evaldas\Source\Repos\TestMakingSystem\TestuKurimoSistema\bin\Release\netcoreapp2.1\win-x86\TestuKurimoSistema.exe
+C:\Users\Evaldas\Source\Repos\TestMakingSystem\TestuKurimoSistema\bin\Release\netcoreapp2.1\win-x86\TestuKurimoSistema.deps.json
+C:\Users\Evaldas\Source\Repos\TestMakingSystem\TestuKurimoSistema\bin\Release\netcoreapp2.1\win-x86\TestuKurimoSistema.runtimeconfig.json
+C:\Users\Evaldas\Source\Repos\TestMakingSystem\TestuKurimoSistema\bin\Release\netcoreapp2.1\win-x86\TestuKurimoSistema.runtimeconfig.dev.json
+C:\Users\Evaldas\Source\Repos\TestMakingSystem\TestuKurimoSistema\bin\Release\netcoreapp2.1\win-x86\TestuKurimoSistema.dll
+C:\Users\Evaldas\Source\Repos\TestMakingSystem\TestuKurimoSistema\bin\Release\netcoreapp2.1\win-x86\TestuKurimoSistema.pdb
+C:\Users\Evaldas\Source\Repos\TestMakingSystem\TestuKurimoSistema\obj\Release\netcoreapp2.1\win-x86\TestuKurimoSistema.csprojAssemblyReference.cache
+C:\Users\Evaldas\Source\Repos\TestMakingSystem\TestuKurimoSistema\obj\Release\netcoreapp2.1\win-x86\TestuKurimoSistema.csproj.CoreCompileInputs.cache
+C:\Users\Evaldas\Source\Repos\TestMakingSystem\TestuKurimoSistema\obj\Release\netcoreapp2.1\win-x86\TestuKurimoSistema.RazorAssemblyInfo.cache
+C:\Users\Evaldas\Source\Repos\TestMakingSystem\TestuKurimoSistema\obj\Release\netcoreapp2.1\win-x86\TestuKurimoSistema.RazorAssemblyInfo.cs
+C:\Users\Evaldas\Source\Repos\TestMakingSystem\TestuKurimoSistema\obj\Release\netcoreapp2.1\win-x86\TestuKurimoSistema.AssemblyInfoInputs.cache
+C:\Users\Evaldas\Source\Repos\TestMakingSystem\TestuKurimoSistema\obj\Release\netcoreapp2.1\win-x86\TestuKurimoSistema.AssemblyInfo.cs
+C:\Users\Evaldas\Source\Repos\TestMakingSystem\TestuKurimoSistema\obj\Release\netcoreapp2.1\win-x86\TestuKurimoSistema.RazorTargetAssemblyInfo.cache
+C:\Users\Evaldas\Source\Repos\TestMakingSystem\TestuKurimoSistema\obj\Release\netcoreapp2.1\win-x86\TestuKurimoSistema.dll
+C:\Users\Evaldas\Source\Repos\TestMakingSystem\TestuKurimoSistema\obj\Release\netcoreapp2.1\win-x86\TestuKurimoSistema.pdb
