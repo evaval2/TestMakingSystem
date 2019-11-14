@@ -177,17 +177,14 @@ response_type=code&state=123
             else if (grant_type == "refresh_token")
             {
                 var name = TokenValidator.Validate(Request);
-                if (name == username)
+                if (name != null)
                 {
-                    if (name == null)
-                    {
-                        return StatusCode(400);
-                    }
+                    name = name.Split(' ')[1];
                     var TokenString = Request.Headers.Where(h => h.Key == "Authorization").First().Value.ToString().Split(' ')[1];
                     var users = await GetUsers();
                     User user = null;
                     user = users.Where(u => u.Token == TokenString).First();
-                    if (user != null)
+                    if (user != null && user.Username == name)
                     {
                         var tokenHandler = new JwtSecurityTokenHandler();
                         var key = Secret.Select(s => Convert.ToByte(s)).ToArray();
