@@ -138,7 +138,7 @@ namespace TestuKurimoSistema.DB.Entities
                     return null;
                 }
                 query = new SimpleStatement("UPDATE user  SET password = '" + userB.Password + "', role = '" + userB.UserRole + 
-                                                          "', average = " + userB.AverageGrade + ", , refresh_token = "+ userB.Token + " WHERE username = ?", id);
+                                                          "', average = " + userB.AverageGrade + ", refresh_token = '"+ userB.Token + "' WHERE username = ?", id);
                 response = await session.ExecuteAsync(query);
                 session.Dispose();
                 userB.Username = id;

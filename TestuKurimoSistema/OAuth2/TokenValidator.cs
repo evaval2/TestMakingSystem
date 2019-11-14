@@ -30,8 +30,10 @@ namespace TestuKurimoSistema.OAuth2
             };
             SecurityToken validatedToken = null;
             var claims = tokenHandler.ValidateToken(Token, validationParameters, out validatedToken);
-            string claim = claims.FindFirst(ClaimsIdentity.DefaultRoleClaimType).ToString();
-            if (claim == null || claim == "")
+            string claim = null;
+            if (claims.FindFirst(ClaimsIdentity.DefaultRoleClaimType) != null)
+            claim = claims.FindFirst(ClaimsIdentity.DefaultRoleClaimType).ToString();
+            if ((claim == null || claim == "") && claims.FindFirst(ClaimTypes.NameIdentifier)!= null)
                 claim = claims.FindFirst(ClaimTypes.NameIdentifier).ToString();
             return claim;
         }

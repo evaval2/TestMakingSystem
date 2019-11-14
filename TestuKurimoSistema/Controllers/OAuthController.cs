@@ -179,9 +179,15 @@ response_type=code&state=123
                 var name = TokenValidator.Validate(Request);
                 if (name == username)
                 {
+                    if (name == null)
+                    {
+                        return StatusCode(400);
+                    }
                     var TokenString = Request.Headers.Where(h => h.Key == "Authorization").First().Value.ToString().Split(' ')[1];
-                    var user = await GetUser(username);
-                    if (TokenString.Equals(user.Token))
+                    var users = await GetUsers();
+                    User user = null;
+                    user = users.Where(u => u.Token == TokenString).First();
+                    if (user != null)
                     {
                         var tokenHandler = new JwtSecurityTokenHandler();
                         var key = Secret.Select(s => Convert.ToByte(s)).ToArray();
@@ -256,6 +262,11 @@ response_type=code&state=123
             var user = new User();
             return await user.Select(username);
         }
+        private static async Task<List<User>> GetUsers()
+        {
+            var user = new User();
+            return await user.Select();
+        }
         private class ClientData
         {
             protected string client_id { get; set; }
@@ -268,22 +279,5 @@ response_type=code&state=123
                 client_id = c_id; state = st; response_type = r_type; redirect_uri = r_uri; scope = sc;
             }
         }
-    }
-    public class Token
-    {
-        public string access_token { get; set; }
-        public DateTime timestamp { get; }
-        public int duration { get; }
-        public string refresh_token { get; set; }
-        public string token_type { get; }
-        public Token(string access_token, string refresh_token, int duration, string type)
-        {
-            this.timestamp = DateTime.Now;
-            this.duration = duration;
-            this.access_token = access_token;
-            this.refresh_token = refresh_token;
-            token_type = type;
-        }
-        public bool IsExpired { get { if (DateTime.Now.Subtract(timestamp).TotalSeconds >= duration) return true; return false; } }
-    }
+    }    
 }
