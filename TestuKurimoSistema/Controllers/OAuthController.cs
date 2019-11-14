@@ -166,7 +166,7 @@ response_type=code&state=123
                 else
                 {
                     // failed to authenticate
-                    return Unauthorized();
+                    return StatusCode(401);
                 }
                 //return access token and refresh token
             }

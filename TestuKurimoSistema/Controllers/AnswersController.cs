@@ -55,7 +55,7 @@ namespace TestuKurimoSistema.Controllers
                 return Created("temos/" + topicId + "/testai/" + testId + "/klausimai/"
                                         + questionId + "/atsakymai/" + answer.Id, answer);
             }
-            return Unauthorized();
+            return new ForbidResult();
         }
         [HttpPatch]
         public async Task<IActionResult> Patch()
@@ -93,7 +93,7 @@ namespace TestuKurimoSistema.Controllers
                 }
                 return NotFound();
             }
-            return Unauthorized();
+            return new ForbidResult();
         }
         [HttpDelete]
         public async Task<IActionResult> Delete()
@@ -119,7 +119,7 @@ namespace TestuKurimoSistema.Controllers
                 }
                 return NotFound();
             }
-            return Unauthorized();
+            return new ForbidResult();
         }
     }
 }

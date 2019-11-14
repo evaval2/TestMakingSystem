@@ -33,7 +33,7 @@ namespace TestuKurimoSistema.Controllers
                 var list = await _user.Select();
                 return Ok(list);
             }
-            return Unauthorized();
+            return new ForbidResult();
         }
 
         // GET api/<controller>/5
@@ -53,7 +53,7 @@ namespace TestuKurimoSistema.Controllers
                     return Ok(user);
                 return NotFound();
             }
-            return Unauthorized();
+            return new ForbidResult();
         }
         [HttpPost("{id:int}")]
         public async Task<IActionResult> Post()
@@ -105,7 +105,7 @@ namespace TestuKurimoSistema.Controllers
                     return Ok(user);
                 return NotFound();
             }
-            return Unauthorized();
+            return new ForbidResult();
         }
         [HttpDelete]
         public async Task<IActionResult> Delete()
@@ -131,7 +131,7 @@ namespace TestuKurimoSistema.Controllers
                 }
                 return NotFound();
             }
-            return Unauthorized();
+            return new ForbidResult();
         }
         
     }
