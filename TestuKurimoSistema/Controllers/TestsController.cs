@@ -5,15 +5,24 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using TestuKurimoSistema.DB.Entities;
 using TestuKurimoSistema.OAuth2;
+using Newtonsoft.Json;
+using System.IO;
 namespace TestuKurimoSistema.Controllers
 {
     [Route("temos/{topicId:int}/testai")]
     public class TestsController : Controller
     {
         private Test _test;
+        private Dictionary<string, Dictionary<string, string>> parameters;
         public TestsController()
         {
             _test = new Test();
+            var jsonSerializer = new JsonSerializer();
+            using (var streamReader = new StreamReader(Request.Body))
+            using (var jsonTextReader = new JsonTextReader(streamReader))
+            {
+                parameters = jsonSerializer.Deserialize<Dictionary<string, Dictionary<string, string>>>(jsonTextReader);
+            }
         }
         // GET: api/<controller>
         [HttpGet]
@@ -33,15 +42,19 @@ namespace TestuKurimoSistema.Controllers
             return NotFound(); //404
         }
         [HttpPost("{id:int}")]
-        public async Task<IActionResult> Post()
+        public async Task<IActionResult> Post(int topicId, int id)
         {
             return StatusCode(405);
         }
         // POST api/<controller>
         [HttpPost]
-        public async Task<IActionResult> Post(int topicId, [FromBody]Test value)
+        public async Task<IActionResult> Post(int topicId)
         {
-            var role = TokenValidator.Validate(Request);
+            if (!parameters.ContainsKey("Authorization"))
+                return BadRequest();
+            if (!parameters["Authorization"].ContainsKey("access_token") || !parameters["Authorization"].ContainsKey("token_type"))
+                return BadRequest();
+            var role = TokenValidator.Validate(parameters["Authorization"]["access_token"]);
             if (role == "")
             {
                 return Unauthorized();
@@ -49,7 +62,8 @@ namespace TestuKurimoSistema.Controllers
 
             if (role == "admin" || role == "user")
             {
-                if (value.TestName == null)
+                var value = construct();
+                if (value == null)
                 {
                     return BadRequest();
                 }
@@ -59,25 +73,29 @@ namespace TestuKurimoSistema.Controllers
             return new ForbidResult();
         }
         [HttpPatch]
-        public async Task<IActionResult> Patch()
+        public async Task<IActionResult> Patch(int topicId)
         {
             return StatusCode(405);
         }
         [HttpPatch("{id:int}")]
-        public async Task<IActionResult> Patch(int id)
+        public async Task<IActionResult> Patch(int topicId, int id)
         {
             return StatusCode(405);
         }
         [HttpPut]
-        public async Task<IActionResult> Put()
+        public async Task<IActionResult> Put(int topicId)
         {
             return StatusCode(405);
         }
         // PUT api/<controller>/5
         [HttpPut("{id:int}")]
-        public async Task<IActionResult> Put(int topicId, int id, [FromBody]Test value)
+        public async Task<IActionResult> Put(int topicId, int id)
         {
-            var role = TokenValidator.Validate(Request);
+            if (!parameters.ContainsKey("Authorization"))
+                return BadRequest();
+            if (!parameters["Authorization"].ContainsKey("access_token") || !parameters["Authorization"].ContainsKey("token_type"))
+                return BadRequest();
+            var role = TokenValidator.Validate(parameters["Authorization"]["access_token"]);
             if (role == "")
             {
                 return Unauthorized();
@@ -85,7 +103,9 @@ namespace TestuKurimoSistema.Controllers
 
             if (role == "admin" || role == "user")
             {
-                if (value.TestName == null)
+                var value = construct();
+                value.Id = id;
+                if (value == null)
                 {
                     return BadRequest();
                 }
@@ -99,7 +119,7 @@ namespace TestuKurimoSistema.Controllers
             return new ForbidResult();
         }
         [HttpDelete]
-        public async Task<IActionResult> Delete()
+        public async Task<IActionResult> Delete(int topicId)
         {
             return StatusCode(405);
         }
@@ -107,7 +127,11 @@ namespace TestuKurimoSistema.Controllers
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> Delete(int topicId, int id)
         {
-            var role = TokenValidator.Validate(Request);
+            if (!parameters.ContainsKey("Authorization"))
+                return BadRequest();
+            if (!parameters["Authorization"].ContainsKey("access_token") || !parameters["Authorization"].ContainsKey("token_type"))
+                return BadRequest();
+            var role = TokenValidator.Validate(parameters["Authorization"]["access_token"]);
             if (role == "")
             {
                 return Unauthorized();
@@ -123,6 +147,29 @@ namespace TestuKurimoSistema.Controllers
                 return NotFound(); //404
             }
             return new ForbidResult();
+        }
+        private Test construct()
+        {
+            if (!parameters.ContainsKey("Test"))
+                return null;
+            if (!parameters["Test"].ContainsKey("TestName"))
+            {
+                return null;
+            }
+            var test = new Test(0, parameters["Topic"]["TestName"], 0, 0);
+            if (parameters["Test"].ContainsKey("AverageGrade"))
+            {
+                float average;
+                if (float.TryParse(parameters["Test"]["AverageGrade"], out average))
+                    test.AverageGrade = average;
+            }
+            if (parameters["Test"].ContainsKey("TestTime"))
+            {
+                int time;
+                if (int.TryParse(parameters["Test"]["TestTime"], out time))
+                    test.TestTime = time;
+            }
+            return test;
         }
     }
 }

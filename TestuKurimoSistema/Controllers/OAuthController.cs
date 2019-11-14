@@ -14,7 +14,7 @@ using TestuKurimoSistema.DB.Entities;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.AspNetCore.Authorization;
 using TestuKurimoSistema.OAuth2;
-
+using Newtonsoft.Json;
 
 namespace TestuKurimoSistema.Controllers
 {    
@@ -116,18 +116,29 @@ response_type=code&state=123
             return user;
         }
         [Route("/token")]
-        [HttpPost]
-        public async Task<IActionResult> Access_token(string grant_type, string client_id, string client_secret, string username, string password, string refresh_token, string code, string redirect_uri, string state)
+        [HttpPost]        
+        public async Task<IActionResult> Access_token()
         {
+            var jsonSerializer = new JsonSerializer();
+            Dictionary<string, string> parameters = new Dictionary<string, string>();
+            using (var streamReader = new StreamReader(Request.Body))
+            using (var jsonTextReader = new JsonTextReader(streamReader))
+            {
+                parameters = jsonSerializer.Deserialize<Dictionary<string, string>>(jsonTextReader);
+            }
             string accessToken = null;
             string refreshToken = null;
-            if (grant_type == "password")
+            if (!parameters.ContainsKey("client_id"))
+                parameters.Add("client_id", "TestuKurimoSistema");
+            if (!parameters.ContainsKey("grant_type"))
+                return BadRequest();
+            if (parameters["grant_type"] == "password")
             {
-                if (password == null || username == null || client_id == null || grant_type == null)
+                if (!parameters.ContainsKey("password") || !parameters.ContainsKey("username"))
                 {
-                    return StatusCode(400);
+                    return BadRequest();
                 }
-                var user = await Authenticate(username, password);
+                var user = await Authenticate(parameters["username"], parameters["password"]);
                 if (user != null)
                 {
                     var tokenHandler = new JwtSecurityTokenHandler();
@@ -140,7 +151,7 @@ response_type=code&state=123
                         }),
                         Expires = DateTime.UtcNow.AddMinutes(5),
                         SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature),
-                        Audience = client_id,
+                        Audience = parameters["client_id"],
                         Issuer = Secret
                     };
                     var refreshtokenDescriptor = new SecurityTokenDescriptor
@@ -152,7 +163,7 @@ response_type=code&state=123
                         }),
                         Expires = DateTime.UtcNow.AddMonths(12),
                         SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature),
-                        Audience = client_id,
+                        Audience = parameters["client_id"],
                         Issuer = Secret
                     };
                     var accesstoken = tokenHandler.CreateToken(accesstokenDescriptor);
@@ -161,7 +172,7 @@ response_type=code&state=123
                     refreshToken = tokenHandler.WriteToken(refreshtoken);
                     user.Token = refreshToken;
                     await user.Update(user.Username, user);
-                    return Json(new Dictionary<string, string>() { { "access_token", accessToken }, { "expires", "300" }, { "state", state }, { "refresh_token", refreshToken } });
+                    return Json(new Dictionary<string, string>() { { "access_token", accessToken }, { "expires", "300" }, { "state", parameters["state"] }, { "refresh_token", refreshToken } });
                 }
                 else
                 {
@@ -170,17 +181,19 @@ response_type=code&state=123
                 }
                 //return access token and refresh token
             }
-            else if (grant_type == "authorization_code")
+            else if (parameters["grant_type"] == "authorization_code")
             {
                 return StatusCode(400);
             }
-            else if (grant_type == "refresh_token")
+            else if (parameters["grant_type"] == "refresh_token")
             {
-                var name = TokenValidator.Validate(Request);
+                if (!parameters.ContainsKey("refresh_token"))
+                    return BadRequest();
+                var name = TokenValidator.Validate(parameters["refresh_token"]);
                 if (name != null)
                 {
                     name = name.Split(' ')[1];
-                    var TokenString = Request.Headers.Where(h => h.Key == "Authorization").First().Value.ToString().Split(' ')[1];
+                    var TokenString = parameters["refresh_token"];
                     var users = await GetUsers();
                     User user = null;
                     user = users.Where(u => u.Token == TokenString).First();
@@ -196,7 +209,7 @@ response_type=code&state=123
                             }),
                             Expires = DateTime.UtcNow.AddMinutes(5),
                             SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature),
-                            Audience = client_id,
+                            Audience = parameters["client_id"],
                             Issuer = Secret
                         };
                         var refreshtokenDescriptor = new SecurityTokenDescriptor
@@ -208,7 +221,7 @@ response_type=code&state=123
                             }),
                             Expires = DateTime.UtcNow.AddMonths(12),
                             SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature),
-                            Audience = client_id,
+                            Audience = parameters["client_id"],
                             Issuer = Secret
                         };
                         var accesstoken = tokenHandler.CreateToken(accesstokenDescriptor);
@@ -276,5 +289,6 @@ response_type=code&state=123
                 client_id = c_id; state = st; response_type = r_type; redirect_uri = r_uri; scope = sc;
             }
         }
+        
     }    
 }

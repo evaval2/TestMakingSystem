@@ -12,14 +12,14 @@ namespace TestuKurimoSistema.OAuth2
 {
     public static class TokenValidator
     {
-        public static string Validate(HttpRequest request)
+        public static string Validate(string token)
         {
-            var TokenString = request.Headers.Where(h => h.Key == "Authorization").First().Value.ToString();
+            var TokenString = token;
             if (TokenString == "")
             {
                 return null;
             }
-            var Token = TokenString.Split(' ')[1];
+            var Token = TokenString;
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = OAuthController.Secret.Select(s => Convert.ToByte(s)).ToArray();
             var validationParameters = new TokenValidationParameters
@@ -32,9 +32,9 @@ namespace TestuKurimoSistema.OAuth2
             var claims = tokenHandler.ValidateToken(Token, validationParameters, out validatedToken);
             string claim = null;
             if (claims.FindFirst(ClaimsIdentity.DefaultRoleClaimType) != null)
-            claim = claims.FindFirst(ClaimsIdentity.DefaultRoleClaimType).ToString();
+            claim = claims.FindFirst(ClaimsIdentity.DefaultRoleClaimType).ToString().Split(' ')[1];
             if ((claim == null || claim == "") && claims.FindFirst(ClaimTypes.NameIdentifier)!= null)
-                claim = claims.FindFirst(ClaimTypes.NameIdentifier).ToString();
+                claim = claims.FindFirst(ClaimTypes.NameIdentifier).ToString().Split(' ')[1];
             return claim;
         }
     }
