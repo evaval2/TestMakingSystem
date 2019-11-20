@@ -14,17 +14,45 @@ namespace TestuKurimoSistema.Controllers
     {
         private Topic _topic;
         private Dictionary<string, Dictionary<string, string>> parameters;
+        private Error _error;
         public TopicsController()
         {
             _topic = new Topic();
-            var jsonSerializer = new JsonSerializer();
-            using (var streamReader = new StreamReader(Request.Body))
-            using (var jsonTextReader = new JsonTextReader(streamReader))
-            {
-                parameters = jsonSerializer.Deserialize<Dictionary<string, Dictionary<string, string>>>(jsonTextReader);
-            }
+            
         }
+        private IActionResult checkParams(out string role)
+        {
+            role = "";
+            string exception;
+            _error = new Error(Response);
 
+            if (!Request.IsHttps)
+                return Json(_error.WriteError(500, "not_secure", "", "Use https instead of http."));
+            var jsonSerializer = new JsonSerializer();
+            if (Request != null)
+            {
+                using (var streamReader = new StreamReader(Request.Body))
+                using (var jsonTextReader = new JsonTextReader(streamReader))
+                {
+                    parameters = jsonSerializer.Deserialize<Dictionary<string, Dictionary<string, string>>>(jsonTextReader);
+                }
+            }
+            if (parameters == null)
+                parameters = new Dictionary<string, Dictionary<string, string>>();            
+            
+            if (!parameters.ContainsKey("Authorization"))
+                return Json(_error.WriteError(400, "invalid_request", "", "Request does not contain object \"Authorization\"."));
+            if (!parameters["Authorization"].ContainsKey("access_token"))
+                return Json(_error.WriteError(400, "invalid_request", "", "Object \"Authorization\" does not contain item \"access_token\"."));
+            if (!parameters["Authorization"].ContainsKey("token_type"))
+                return Json(_error.WriteError(400, "invalid_request", "", "Object \"Authorization\" does not contain item \"token_type\"."));
+            role = TokenValidator.Validate(parameters["Authorization"]["access_token"], out exception);
+            if (role == null)
+            {
+                return Json(_error.WriteError(401, "unauthorized_client", "", "Invalid access token."));
+            }
+            return null;
+        }
         [HttpGet]
         public async Task<IActionResult> Get()
         {
@@ -43,20 +71,19 @@ namespace TestuKurimoSistema.Controllers
         [HttpPost("{id:int}")]
         public async Task<IActionResult> Post(int id)
         {
+            string role;
+            var checkParam = checkParams(out role);
+            if (checkParam != null)
+                return checkParam;
             return StatusCode(405);
         }
         [HttpPost]
         public async Task<IActionResult> Post()
         {
-            if (!parameters.ContainsKey("Authorization"))
-                return BadRequest();
-            if (!parameters["Authorization"].ContainsKey("access_token") || !parameters["Authorization"].ContainsKey("token_type"))
-                return BadRequest();
-            var role = TokenValidator.Validate(parameters["Authorization"]["access_token"]);
-            if (role == "")
-            {
-                return Unauthorized();
-            }
+            string role;
+            var checkParam = checkParams(out role);
+            if (checkParam != null)
+                return checkParam;
 
             if (role == "admin" || role == "user")
             {
@@ -70,35 +97,42 @@ namespace TestuKurimoSistema.Controllers
                     return Created("temos/" + topic.Id, topic); //201
                 return Conflict(); //409
             }
-            return new ForbidResult();
+            return Json(_error.WriteError(403, "invalid_scope", "", "Permission denied."));
         }
         [HttpPatch]
         public async Task<IActionResult> Patch()
         {
+            string role;
+            var checkParam = checkParams(out role);
+            if (checkParam != null)
+                return checkParam;
             return StatusCode(405);
         }
         [HttpPatch("{id:int}")]
         public async Task<IActionResult> Patch(int id)
         {
+            string role;
+            var checkParam = checkParams(out role);
+            if (checkParam != null)
+                return checkParam;
             return StatusCode(405);
         }
         [HttpPut]
         public async Task<IActionResult> Put()
         {
+            string role;
+            var checkParam = checkParams(out role);
+            if (checkParam != null)
+                return checkParam;
             return StatusCode(405);
         }
         [HttpPut("{id:int}")]
         public async Task<IActionResult> Put(int id)
         {
-            if (!parameters.ContainsKey("Authorization"))
-                return BadRequest();
-            if (!parameters["Authorization"].ContainsKey("access_token") || !parameters["Authorization"].ContainsKey("token_type"))
-                return BadRequest();
-            var role = TokenValidator.Validate(parameters["Authorization"]["access_token"]);
-            if (role == "")
-            {
-                return Unauthorized();
-            }
+            string role;
+            var checkParam = checkParams(out role);
+            if (checkParam != null)
+                return checkParam;
 
             if (role == "admin" || role == "user")
             {
@@ -117,25 +151,24 @@ namespace TestuKurimoSistema.Controllers
                 }
                 return NotFound(); //404
             }
-            return new ForbidResult();
+            return Json(_error.WriteError(403, "invalid_scope", "", "Permission denied."));
         }
         [HttpDelete]
         public async Task<IActionResult> Delete()
         {
+            string role;
+            var checkParam = checkParams(out role);
+            if (checkParam != null)
+                return checkParam;
             return StatusCode(405);
         }
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> Delete(int id)
         {
-            if (!parameters.ContainsKey("Authorization"))
-                return BadRequest();
-            if (!parameters["Authorization"].ContainsKey("access_token") || !parameters["Authorization"].ContainsKey("token_type"))
-                return BadRequest();
-            var role = TokenValidator.Validate(parameters["Authorization"]["access_token"]);
-            if (role == "")
-            {
-                return Unauthorized();
-            }
+            string role;
+            var checkParam = checkParams(out role);
+            if (checkParam != null)
+                return checkParam;
 
             if (role == "admin" || role == "user")
             {
@@ -146,7 +179,7 @@ namespace TestuKurimoSistema.Controllers
                 }
                 return NotFound(); //404
             }
-            return new ForbidResult();
+            return Json(_error.WriteError(403, "invalid_scope", "", "Permission denied."));
         }
         private Topic construct()
         {

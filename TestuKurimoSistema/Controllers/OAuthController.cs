@@ -14,6 +14,7 @@ using TestuKurimoSistema.DB.Entities;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.AspNetCore.Authorization;
 using TestuKurimoSistema.OAuth2;
+using TestuKurimoSistema.Constants;
 using Newtonsoft.Json;
 
 namespace TestuKurimoSistema.Controllers
@@ -65,11 +66,12 @@ response_type=code&state=123
             refresh_token
             implicit
          * */
-        public static string Secret = "veryveryverysecret";
+        private Error _error;
         [Route("/authorize")]
         [HttpGet]        
         public async void Authorize(string client_id, string state, string response_type, string redirect_uri, string scope)
         {
+            _error = new Error(Response);
             byte[] buff = null;
             var scopes = scope.Split(' ');
             int errorCode;
@@ -80,7 +82,7 @@ response_type=code&state=123
             {
                 body = JsonConvert.SerializeObject(new Dictionary<string, string> { { "error", "invalid_request" }, { "error_description", "The response type \"" + response_type + "\" is not supported by the authorization server." } });
                 Response.StatusCode = 400;
-                buff = body.ToCharArray().Select((c) => Convert.ToByte(c)).ToArray();
+                buff = body.ToCharArray().Select((c) => Convert.ToByte(c)).ToArray(); 
                 Response.Body.Write(buff, 0, buff.Length);
                 
                 return;
@@ -111,7 +113,7 @@ response_type=code&state=123
                 return null;
             if (!user.Password.Equals(password))
             {
-                return null;
+                return new User("", "", "", 0, "");
             }
             return user;
         }
@@ -119,6 +121,7 @@ response_type=code&state=123
         [HttpPost]        
         public async Task<IActionResult> Access_token()
         {
+            _error = new Error(Response);
             var jsonSerializer = new JsonSerializer();
             Dictionary<string, string> parameters = new Dictionary<string, string>();
             using (var streamReader = new StreamReader(Request.Body))
@@ -126,23 +129,37 @@ response_type=code&state=123
             {
                 parameters = jsonSerializer.Deserialize<Dictionary<string, string>>(jsonTextReader);
             }
+            if (parameters == null)
+                parameters = new Dictionary<string, string>();
+            string state = "";
+            if (parameters.ContainsKey("state"))
+                state = parameters["state"];
             string accessToken = null;
             string refreshToken = null;
             if (!parameters.ContainsKey("client_id"))
                 parameters.Add("client_id", "TestuKurimoSistema");
             if (!parameters.ContainsKey("grant_type"))
-                return BadRequest();
+                return Json(_error.WriteError(400, "invalid_request", state, "Request does not contain parameter \"grant_type\"."));
+            
             if (parameters["grant_type"] == "password")
             {
-                if (!parameters.ContainsKey("password") || !parameters.ContainsKey("username"))
+                if (!parameters.ContainsKey("password"))
                 {
-                    return BadRequest();
+                    return Json(_error.WriteError(401, "invalid_request", state, "Request does not contain parameter \"password\"."));
+                }
+                if (!parameters.ContainsKey("username"))
+                {
+                    return Json(_error.WriteError(401, "invalid_request", state, "Request does not contain parameter \"username\"."));
                 }
                 var user = await Authenticate(parameters["username"], parameters["password"]);
                 if (user != null)
                 {
+                    if (user.Username.Equals(""))
+                    {
+                        return Json(_error.WriteError(401, "invalid_client", state, "Failed to authenticate client credentials (invalid password)."));
+                    }
                     var tokenHandler = new JwtSecurityTokenHandler();
-                    var key = Secret.Select(s=> Convert.ToByte(s)).ToArray();
+                    var key = Secret.getSecret().Select(s=> Convert.ToByte(s)).ToArray();
                     var accesstokenDescriptor = new SecurityTokenDescriptor
                     {
                         Subject = new ClaimsIdentity(new Claim[]
@@ -152,7 +169,7 @@ response_type=code&state=123
                         Expires = DateTime.UtcNow.AddMinutes(5),
                         SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature),
                         Audience = parameters["client_id"],
-                        Issuer = Secret
+                        Issuer = Secret.getSecret()
                     };
                     var refreshtokenDescriptor = new SecurityTokenDescriptor
                     {
@@ -164,7 +181,7 @@ response_type=code&state=123
                         Expires = DateTime.UtcNow.AddMonths(12),
                         SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature),
                         Audience = parameters["client_id"],
-                        Issuer = Secret
+                        Issuer = Secret.getSecret()
                     };
                     var accesstoken = tokenHandler.CreateToken(accesstokenDescriptor);
                     accessToken = tokenHandler.WriteToken(accesstoken);                    
@@ -177,30 +194,34 @@ response_type=code&state=123
                 else
                 {
                     // failed to authenticate
-                    return StatusCode(401);
+                    return Json(_error.WriteError(401, "invalid_client", state, "Failed to authenticate client credentials (user \""+ parameters["username"] + "\" not found)."));
                 }
                 //return access token and refresh token
             }
             else if (parameters["grant_type"] == "authorization_code")
-            {
-                return StatusCode(400);
+            {                
+                return Json(_error.WriteError(400, "unsupported_grant_type", state, "The authorization grant type \"authorization_code\" is not supported by the authorization server."));
             }
             else if (parameters["grant_type"] == "refresh_token")
             {
+                if (!Request.IsHttps)
+                    return Json(_error.WriteError(500, "not_secure", state, "Use https instead of http."));
                 if (!parameters.ContainsKey("refresh_token"))
-                    return BadRequest();
-                var name = TokenValidator.Validate(parameters["refresh_token"]);
+                    return Json(_error.WriteError(400, "invalid_request", state, "Request does not contain parameter \"refresh_token\"."));
+                string exception;
+                var name = TokenValidator.Validate(parameters["refresh_token"], out exception);
                 if (name != null)
                 {
-                    name = name.Split(' ')[1];
                     var TokenString = parameters["refresh_token"];
                     var users = await GetUsers();
                     User user = null;
-                    user = users.Where(u => u.Token == TokenString).First();
+                    var userlist = users.Where(u => u.Token == TokenString);
+                    if (userlist.Count() > 0)
+                        user = userlist.First();
                     if (user != null && user.Username == name)
                     {
                         var tokenHandler = new JwtSecurityTokenHandler();
-                        var key = Secret.Select(s => Convert.ToByte(s)).ToArray();
+                        var key = Secret.getSecret().Select(s => Convert.ToByte(s)).ToArray();
                         var accesstokenDescriptor = new SecurityTokenDescriptor
                         {
                             Subject = new ClaimsIdentity(new Claim[]
@@ -210,7 +231,7 @@ response_type=code&state=123
                             Expires = DateTime.UtcNow.AddMinutes(5),
                             SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature),
                             Audience = parameters["client_id"],
-                            Issuer = Secret
+                            Issuer = Secret.getSecret()
                         };
                         var refreshtokenDescriptor = new SecurityTokenDescriptor
                         {
@@ -222,7 +243,7 @@ response_type=code&state=123
                             Expires = DateTime.UtcNow.AddMonths(12),
                             SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature),
                             Audience = parameters["client_id"],
-                            Issuer = Secret
+                            Issuer = Secret.getSecret()
                         };
                         var accesstoken = tokenHandler.CreateToken(accesstokenDescriptor);
                         accessToken = tokenHandler.WriteToken(accesstoken);
@@ -232,6 +253,10 @@ response_type=code&state=123
                         await user.Update(user.Username, user);
                         return Json(new Dictionary<string, string>() { { "access_token", accessToken }, { "expires", "300" }, { "token_type", "JWTbearer" }, { "refresh_token", refreshToken } });
                     }
+                }
+                else
+                {
+                    return Json(_error.WriteError(400, "invalid_grant", state, "Invalid refresh token."));
                 }
             }            
             return StatusCode(400);

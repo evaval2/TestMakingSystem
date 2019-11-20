@@ -16,52 +16,69 @@ namespace TestuKurimoSistema.Controllers
     {
         private User _user;
         private Dictionary<string, Dictionary<string, string>> parameters;
+        private Error _error;
         public UsersController()
         {
-            _user = new User();
-            var jsonSerializer = new JsonSerializer();
-            using (var streamReader = new StreamReader(Request.Body))
-            using (var jsonTextReader = new JsonTextReader(streamReader))
-            {
-                parameters = jsonSerializer.Deserialize<Dictionary<string, Dictionary<string, string>>>(jsonTextReader);
-            }
+            _user = new User();    
         }
-        
+        private IActionResult checkParams(out string role)
+        {
+            role = "";
+            string exception;
+            _error = new Error(Response);
+
+            if (!Request.IsHttps)
+                return Json(_error.WriteError(500, "not_secure", "", "Use https instead of http."));
+            var jsonSerializer = new JsonSerializer();
+            if (Request != null)
+            {
+                using (var streamReader = new StreamReader(Request.Body))
+                using (var jsonTextReader = new JsonTextReader(streamReader))
+                {
+                    parameters = jsonSerializer.Deserialize<Dictionary<string, Dictionary<string, string>>>(jsonTextReader);
+                }
+            }
+            if (parameters == null)
+                parameters = new Dictionary<string, Dictionary<string, string>>();
+            
+            if (!parameters.ContainsKey("Authorization"))
+                return Json(_error.WriteError(400, "invalid_request", "", @"Request does not contain object ""Authorization""."));
+            if (!parameters["Authorization"].ContainsKey("access_token"))
+                return Json(_error.WriteError(400, "invalid_request", "", "Object \"Authorization\" does not contain item \"access_token\"."));
+            if (!parameters["Authorization"].ContainsKey("token_type"))
+                return Json(_error.WriteError(400, "invalid_request", "", "Object \"Authorization\" does not contain item \"token_type\"."));
+            role = TokenValidator.Validate(parameters["Authorization"]["access_token"], out exception);
+            if (role == null)
+            {
+                return Json(_error.WriteError(401, "unauthorized_client", "", "Invalid access token. "+exception));
+            }
+            return null;
+        }
         // GET: api/<controller>
         [HttpGet]
         public async Task<IActionResult> Get()
         {
-            if (!parameters.ContainsKey("Authorization"))
-                return BadRequest();
-            if (!parameters["Authorization"].ContainsKey("access_token") || !parameters["Authorization"].ContainsKey("token_type"))
-                return BadRequest();
-            var role = TokenValidator.Validate(parameters["Authorization"]["access_token"]);
-            if (role == "")
-            {
-                return Unauthorized();
-            }
+            string role;
+            var checkParam = checkParams(out role);
+            if (checkParam != null)
+                return checkParam;
             
             if (role == "admin")
             {
                 var list = await _user.Select();
                 return Ok(list);
             }
-            return new ForbidResult();
+            return Json(_error.WriteError(403, "invalid_scope", "", "Permission denied."));
         }
 
         // GET api/<controller>/5
         [HttpGet("{id}")]
         public async Task<IActionResult> Get(string id)
         {
-            if (!parameters.ContainsKey("Authorization"))
-                return BadRequest();
-            if (!parameters["Authorization"].ContainsKey("access_token") || !parameters["Authorization"].ContainsKey("token_type"))
-                return BadRequest();
-            var role = TokenValidator.Validate(parameters["Authorization"]["access_token"]);
-            if (role == "")
-            {
-                return Unauthorized();
-            }
+            string role;
+            var checkParam = checkParams(out role);
+            if (checkParam != null)
+                return checkParam;
 
             if (role == "admin")
             {
@@ -70,11 +87,15 @@ namespace TestuKurimoSistema.Controllers
                     return Ok(user);
                 return NotFound();
             }
-            return new ForbidResult();
+            return Json(_error.WriteError(403, "invalid_scope", "", "Permission denied."));
         }
         [HttpPost("{id:int}")]
         public async Task<IActionResult> Post(int id)
         {
+            string role;
+            var checkParam = checkParams(out role);
+            if (checkParam != null)
+                return checkParam;
             return StatusCode(405);
         }
         // POST api/<controller>
@@ -92,33 +113,40 @@ namespace TestuKurimoSistema.Controllers
         [HttpPatch]
         public async Task<IActionResult> Patch()
         {
+            string role;
+            var checkParam = checkParams(out role);
+            if (checkParam != null)
+                return checkParam;
             return StatusCode(405);
         }
         [HttpPatch("{id:int}")]
         public async Task<IActionResult> Patch(int id)
         {
+            string role;
+            var checkParam = checkParams(out role);
+            if (checkParam != null)
+                return checkParam;
             return StatusCode(405);
         }
         [HttpPut]
         public async Task<IActionResult> Put()
         {
+            string role;
+            var checkParam = checkParams(out role);
+            if (checkParam != null)
+                return checkParam;
             return StatusCode(405);
         }
         // PUT api/<controller>/5
         [HttpPut("{id}")]
         public async Task<IActionResult> Put(string id)
         {
+            string role;
+            var checkParam = checkParams(out role);
+            if (checkParam != null)
+                return checkParam;
             var value = construct(false);
             value.Username = id;
-            if (!parameters.ContainsKey("Authorization"))
-                return BadRequest();
-            if (!parameters["Authorization"].ContainsKey("access_token") || !parameters["Authorization"].ContainsKey("token_type"))
-                return BadRequest();
-            var role = TokenValidator.Validate(parameters["Authorization"]["access_token"]);
-            if (role == "")
-            {
-                return Unauthorized();
-            }
 
             if (role == "admin")
             {
@@ -130,26 +158,25 @@ namespace TestuKurimoSistema.Controllers
                     return Ok(user);
                 return NotFound();
             }
-            return new ForbidResult();
+            return Json(_error.WriteError(403, "invalid_scope", "", "Permission denied."));
         }
         [HttpDelete]
         public async Task<IActionResult> Delete()
         {
+            string role;
+            var checkParam = checkParams(out role);
+            if (checkParam != null)
+                return checkParam;
             return StatusCode(405);
         }
         // DELETE api/<controller>/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(string id)
         {
-            if (!parameters.ContainsKey("Authorization"))
-                return BadRequest();
-            if (!parameters["Authorization"].ContainsKey("access_token") || !parameters["Authorization"].ContainsKey("token_type"))
-                return BadRequest();
-            var role = TokenValidator.Validate(parameters["Authorization"]["access_token"]);
-            if (role == "")
-            {
-                return Unauthorized();
-            }
+            string role;
+            var checkParam = checkParams(out role);
+            if (checkParam != null)
+                return checkParam;
 
             if (role == "admin")
             {
@@ -160,7 +187,7 @@ namespace TestuKurimoSistema.Controllers
                 }
                 return NotFound();
             }
-            return new ForbidResult();
+            return Json(_error.WriteError(403, "invalid_scope", "", "Permission denied."));
         }
         private User construct(bool id)
         {

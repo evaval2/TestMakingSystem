@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using AutoMapper;
+using TestuKurimoSistema.Constants;
 namespace TestuKurimoSistema
 {
     public class Startup
@@ -37,8 +38,7 @@ namespace TestuKurimoSistema
                 options.CheckConsentNeeded = context => true;
                 options.MinimumSameSitePolicy = SameSiteMode.None;
             });
-            string Secret = "veryveryverysecret";
-            var key = Secret.Select(s => Convert.ToByte(s)).ToArray();
+            var key = Secret.getSecret().Select(s => Convert.ToByte(s)).ToArray();
             services.AddAuthentication(x =>
             {
                 x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -67,11 +67,11 @@ namespace TestuKurimoSistema
             }
             else
             {
-                app.UseHsts();
+           //     app.UseHsts();
             }
             app.UseCookiePolicy();
             app.UseSession();
-            app.UseHttpsRedirection();
+       //     app.UseHttpsRedirection();
             app.UseAuthentication();
             app.UseMvc();
             
