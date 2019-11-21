@@ -23,11 +23,17 @@ namespace TestuKurimoSistema.Controllers
         private IActionResult checkParams(out string role)
         {
             role = "";
+
             string exception;
             _error = new Error(Response);
+            string token = "";
 
             if (!Request.IsHttps)
                 return Json(_error.WriteError(500, "not_secure", "", "Use https instead of http."));
+            if (Request.Headers.ContainsKey("Authorization"))
+                token = Request.Headers["Authorization"].ToString().Split()[1];
+            else
+                return Json(_error.WriteError(401, "Unauthorized", "", "The request has not been applied because it lacks valid authentication credentials for the target resource."));
             var jsonSerializer = new JsonSerializer();
             if (Request != null)
             {
@@ -38,18 +44,12 @@ namespace TestuKurimoSistema.Controllers
                 }
             }
             if (parameters == null)
-                parameters = new Dictionary<string, Dictionary<string, string>>();            
-            
-            if (!parameters.ContainsKey("Authorization"))
-                return Json(_error.WriteError(400, "invalid_request", "", "Request does not contain object \"Authorization\"."));
-            if (!parameters["Authorization"].ContainsKey("access_token"))
-                return Json(_error.WriteError(400, "invalid_request", "", "Object \"Authorization\" does not contain item \"access_token\"."));
-            if (!parameters["Authorization"].ContainsKey("token_type"))
-                return Json(_error.WriteError(400, "invalid_request", "", "Object \"Authorization\" does not contain item \"token_type\"."));
-            role = TokenValidator.Validate(parameters["Authorization"]["access_token"], out exception);
+                parameters = new Dictionary<string, Dictionary<string, string>>();
+
+            role = TokenValidator.Validate(token, out exception);
             if (role == null)
             {
-                return Json(_error.WriteError(401, "unauthorized_client", "", "Invalid access token."));
+                return Json(_error.WriteError(401, "unauthorized_client", "", "Invalid access token. " + exception));
             }
             return null;
         }
