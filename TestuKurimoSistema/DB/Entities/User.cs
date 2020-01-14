@@ -145,6 +145,24 @@ namespace TestuKurimoSistema.DB.Entities
             }
             return userB;
         }
+        public async Task<User> UpdatePassword(string id, string pass)
+        {
+            using (var session = getSession())
+            {
+                var query = new SimpleStatement("SELECT COUNT(*) AS c FROM user WHERE username = ?", id);
+                var response = await session.ExecuteAsync(query);
+                var count = response.FirstOrDefault().GetValue<Int64>("c");
+                if (count == 0)
+                {
+                    session.Dispose();
+                    return null;
+                }
+                query = new SimpleStatement("UPDATE user  SET password = '" + pass + "' WHERE username = ?", id);
+                response = await session.ExecuteAsync(query);
+                session.Dispose();
+            }
+            return new User();
+        }
         public async Task<bool> Remove(string id)
         {
             using (var session = getSession())

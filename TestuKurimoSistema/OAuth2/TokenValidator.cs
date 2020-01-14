@@ -12,9 +12,18 @@ namespace TestuKurimoSistema.OAuth2
 {
     public static class TokenValidator
     {
+        private static string username;
+        public static string Validate(string token, out string exception, out string name)
+        {
+            name = "";
+            string ret = Validate(token, out exception);
+            name = username;
+            return ret;
+        }
         public static string Validate(string token, out string exception)
         {
             exception = "";
+            username = "";
             var TokenString = token;
             if (TokenString == "")
             {
@@ -61,6 +70,8 @@ namespace TestuKurimoSistema.OAuth2
             claim = claims.FindFirst(ClaimsIdentity.DefaultRoleClaimType).ToString().Split(' ')[1];
             if ((claim == null || claim == "") && claims.FindFirst(ClaimTypes.NameIdentifier)!= null)
                 claim = claims.FindFirst(ClaimTypes.NameIdentifier).ToString().Split(' ')[1];
+            if (claims.FindFirst(ClaimTypes.NameIdentifier) != null)
+                username = claims.FindFirst(ClaimTypes.NameIdentifier).ToString().Split(' ')[1];
             return claim;
         }
     }

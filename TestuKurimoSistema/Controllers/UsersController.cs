@@ -21,10 +21,10 @@ namespace TestuKurimoSistema.Controllers
         {
             _user = new User();    
         }
-        private IActionResult checkParams(out string role)
+        private IActionResult checkParams(out string role, out string name)
         {
-            role = "";           
-
+            role = "";
+            name = "";
             string exception;
             _error = new Error(Response);
             string token = "";
@@ -47,7 +47,7 @@ namespace TestuKurimoSistema.Controllers
             if (parameters == null)
                 parameters = new Dictionary<string, Dictionary<string, string>>();
 
-            role = TokenValidator.Validate(token, out exception);
+            role = TokenValidator.Validate(token, out exception, out name);
             if (role == null)
             {
                 return Json(_error.WriteError(401, "unauthorized_client", "", "Invalid access token. "+exception));
@@ -59,7 +59,8 @@ namespace TestuKurimoSistema.Controllers
         public async Task<IActionResult> Get()
         {
             string role;
-            var checkParam = checkParams(out role);
+            string name;
+            var checkParam = checkParams(out role, out name);
             if (checkParam != null)
                 return checkParam;
             
@@ -76,11 +77,17 @@ namespace TestuKurimoSistema.Controllers
         public async Task<IActionResult> Get(string id)
         {
             string role;
-            var checkParam = checkParams(out role);
+            string name;
+            var checkParam = checkParams(out role, out name);
             if (checkParam != null)
                 return checkParam;
-
-            if (role == "admin")
+            if (name == id)
+            {
+                var user = await _user.Select(id);
+                if (user != null)
+                    return Ok(user);
+                return NotFound();
+            } else if (role == "admin")
             {
                 var user = await _user.Select(id);
                 if (user != null)
@@ -93,7 +100,8 @@ namespace TestuKurimoSistema.Controllers
         public async Task<IActionResult> Post(int id)
         {
             string role;
-            var checkParam = checkParams(out role);
+            string name;
+            var checkParam = checkParams(out role, out name);
             if (checkParam != null)
                 return checkParam;
             return StatusCode(405);
@@ -114,7 +122,8 @@ namespace TestuKurimoSistema.Controllers
         public async Task<IActionResult> Patch()
         {
             string role;
-            var checkParam = checkParams(out role);
+            string name;
+            var checkParam = checkParams(out role, out name);
             if (checkParam != null)
                 return checkParam;
             return StatusCode(405);
@@ -123,7 +132,8 @@ namespace TestuKurimoSistema.Controllers
         public async Task<IActionResult> Patch(int id)
         {
             string role;
-            var checkParam = checkParams(out role);
+            string name;
+            var checkParam = checkParams(out role, out name);
             if (checkParam != null)
                 return checkParam;
             return StatusCode(405);
@@ -132,7 +142,8 @@ namespace TestuKurimoSistema.Controllers
         public async Task<IActionResult> Put()
         {
             string role;
-            var checkParam = checkParams(out role);
+            string name;
+            var checkParam = checkParams(out role, out name);
             if (checkParam != null)
                 return checkParam;
             return StatusCode(405);
@@ -142,21 +153,29 @@ namespace TestuKurimoSistema.Controllers
         public async Task<IActionResult> Put(string id)
         {
             string role;
-            var checkParam = checkParams(out role);
+            string name;
+            var checkParam = checkParams(out role, out name);
             if (checkParam != null)
                 return checkParam;
             var value = construct(false);
             value.Username = id;
 
-            if (role == "admin")
+            if (role != "")
             {
                 if (value == null)
                     return BadRequest();
-                value.Username = id;
-                var user = await _user.Update(id, value);
-                if (user != null)
-                    return Ok(user);
-                return NotFound();
+                if (id == name)
+                {
+                    value.Username = id;
+                    User user;
+                    if (value.Token == "" && value.AverageGrade == 0)
+                        user = await _user.UpdatePassword(id, value.Password);
+                    else
+                        user = await _user.Update(id, value);
+                    if (user != null)
+                        return Ok(user);
+                    return NotFound();
+                }
             }
             return Json(_error.WriteError(403, "invalid_scope", "", "Permission denied."));
         }
@@ -164,7 +183,8 @@ namespace TestuKurimoSistema.Controllers
         public async Task<IActionResult> Delete()
         {
             string role;
-            var checkParam = checkParams(out role);
+            string name;
+            var checkParam = checkParams(out role, out name);
             if (checkParam != null)
                 return checkParam;
             return StatusCode(405);
@@ -174,18 +194,22 @@ namespace TestuKurimoSistema.Controllers
         public async Task<IActionResult> Delete(string id)
         {
             string role;
-            var checkParam = checkParams(out role);
+            string name;
+            var checkParam = checkParams(out role, out name);
             if (checkParam != null)
                 return checkParam;
 
             if (role == "admin")
             {
-                var response = await _user.Remove(id);
-                if (response)
+                if (id != name)
                 {
-                    return NoContent();
+                    var response = await _user.Remove(id);
+                    if (response)
+                    {
+                        return NoContent();
+                    }
+                    return NotFound();
                 }
-                return NotFound();
             }
             return Json(_error.WriteError(403, "invalid_scope", "", "Permission denied."));
         }
@@ -193,7 +217,8 @@ namespace TestuKurimoSistema.Controllers
         {
             if (!parameters.ContainsKey("User"))
                 return null;
-            if (!parameters["User"].ContainsKey("Password") || !parameters["User"].ContainsKey("UserRole"))
+
+            if (!parameters["User"].ContainsKey("Password"))
             {
                 return null;
             }
@@ -201,7 +226,7 @@ namespace TestuKurimoSistema.Controllers
                 return null;
             else if (!parameters["User"].ContainsKey("Username"))
                 parameters["User"].Add("Username", "");
-            var user = new User(parameters["User"]["Username"], parameters["User"]["Password"], parameters["User"]["UserRole"], 0, "");
+            var user = new User(parameters["User"]["Username"], parameters["User"]["Password"], "user", 0, "");
             if (parameters["User"].ContainsKey("AverageGrade")) {
                 float average;
                 if (float.TryParse(parameters["User"]["AverageGrade"], out average))
